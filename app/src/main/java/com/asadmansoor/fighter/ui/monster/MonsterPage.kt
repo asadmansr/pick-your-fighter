@@ -1,6 +1,7 @@
 package com.asadmansoor.fighter.ui.monster
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,12 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.asadmansoor.fighter.ui.utils.noRippleClickable
 
 private const val IMAGE_WIDTH_FRACTION = 0.8f
 
 @Composable
 fun MonsterPage(
-    monster: MonsterImage
+    monster: MonsterImage,
+    onTap: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -31,7 +34,8 @@ fun MonsterPage(
             modifier = Modifier
                 .fillMaxWidth(IMAGE_WIDTH_FRACTION)
                 .weight(1f)
-                .padding(24.dp),
+                .padding(24.dp)
+                .noRippleClickable { onTap() },
         )
     }
 }

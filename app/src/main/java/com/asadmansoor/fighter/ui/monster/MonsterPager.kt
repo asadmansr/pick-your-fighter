@@ -13,8 +13,10 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.asadmansoor.fighter.ui.utils.Indicator
+import com.asadmansoor.fighter.ui.utils.playHaptic
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
@@ -25,6 +27,7 @@ fun MonsterPager(
     val pagerState = rememberPagerState(pageCount = { monsters.size })
     val backgroundColor = monsters.getOrNull(index = pagerState.currentPage)
         ?.backgroundColor ?: Color.White
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -36,7 +39,11 @@ fun MonsterPager(
             state = pagerState,
             modifier = Modifier.weight(1f),
         ) { page ->
-            MonsterPage(monster = monsters[page])
+            val monster = monsters[page]
+            MonsterPage(
+                monster = monster,
+                onTap = { context.playHaptic(monster.haptic) },
+            )
         }
         Indicator(
             currentPage = pagerState.currentPage,

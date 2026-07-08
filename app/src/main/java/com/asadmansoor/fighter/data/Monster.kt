@@ -4,4 +4,5 @@ data class Monster(
     val name: String,
     val image: String,
     val backgroundColor: String,
+    val haptic: String? = null,
 )

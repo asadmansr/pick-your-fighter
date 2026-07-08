@@ -7,4 +7,5 @@ data class MonsterImage(
     val imageName: String,
     @get:DrawableRes val drawable: Int,
     val backgroundColor: Color,
+    val haptic: String? = null,
 )

@@ -11,6 +11,7 @@ fun Monster.toMonsterImage(): MonsterImage? {
         imageName = name,
         drawable = drawableId,
         backgroundColor = Color(backgroundColor.toColorInt()),
+        haptic = haptic,
     )
 }
 
