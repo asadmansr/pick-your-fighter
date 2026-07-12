@@ -43,7 +43,7 @@ class MockMonsterApi : MonsterApi {
             name = "Alien",
             image = "alien",
             backgroundColor = "#81C784",
-            haptic = "ramp_up",
+            haptic = "tap",
         ),
         Monster(
             name = "Squid Alien",

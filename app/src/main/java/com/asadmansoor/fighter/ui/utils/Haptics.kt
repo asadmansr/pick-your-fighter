@@ -6,11 +6,25 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 
+private sealed interface Haptic
+
 private class HapticPattern(
     val timings: LongArray,
     val amplitudes: IntArray,
     val repeat: Int
-)
+) : Haptic
+
+/** A single composition primitive: [id] at [scale] strength (0f..1f), started after a [delayMs] pause. */
+private class Primitive(val id: Int, val scale: Float = 1f, val delayMs: Int = 0)
+
+/**
+ * A haptic built from hardware [primitives] (crisper than a waveform). Devices missing any
+ * requested primitive fall back to the [fallback] waveform.
+ */
+private class HapticComposition(
+    val primitives: List<Primitive>,
+    val fallback: HapticPattern
+) : Haptic
 
 /**
  * A rising staircase that builds to a full-strength pulse, pauses, then climbs again to a second peak.
@@ -72,12 +86,25 @@ private val roar = HapticPattern(
     repeat = -1
 )
 
-private val patternsByKey: Map<String, HapticPattern> = mapOf(
+/**
+ * A gentle build that lands on a crisp click, using hardware primitives for a sharper feel.
+ * Falls back to [swell] on devices without composition support.
+ */
+private val tap = HapticComposition(
+    primitives = listOf(
+        Primitive(VibrationEffect.Composition.PRIMITIVE_SLOW_RISE),
+        Primitive(VibrationEffect.Composition.PRIMITIVE_CLICK)
+    ),
+    fallback = swell
+)
+
+private val patternsByKey: Map<String, Haptic> = mapOf(
     "ramp_up" to rampUp,
     "swell" to swell,
     "heartbeat" to heartbeat,
     "bounce" to bounce,
-    "roar" to roar
+    "roar" to roar,
+    "tap" to tap
 )
 
 fun Context.playHaptic(key: String?) {
@@ -91,7 +118,20 @@ fun Context.playHaptic(key: String?) {
     }
     if (!vibrator.hasVibrator()) return
 
-    vibrator.vibrate(
-        VibrationEffect.createWaveform(pattern.timings, pattern.amplitudes, pattern.repeat)
-    )
+    vibrator.vibrate(pattern.toEffect(vibrator))
+}
+
+private fun Haptic.toEffect(vibrator: Vibrator): VibrationEffect = when (this) {
+    is HapticPattern -> VibrationEffect.createWaveform(timings, amplitudes, repeat)
+    is HapticComposition -> {
+        if (primitives.all { vibrator.areAllPrimitivesSupported(it.id) }) {
+            primitives
+                .fold(VibrationEffect.startComposition()) { composition, primitive ->
+                    composition.addPrimitive(primitive.id, primitive.scale, primitive.delayMs)
+                }
+                .compose()
+        } else {
+            VibrationEffect.createWaveform(fallback.timings, fallback.amplitudes, fallback.repeat)
+        }
+    }
 }
